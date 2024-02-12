@@ -2,7 +2,7 @@
 #this simplifies githubbing
 echo filename
 read varname
-npx eslint --fix $varname
+
 git add .
 git commit -m "implemetation of $varname"
 git push

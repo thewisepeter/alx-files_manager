@@ -1,51 +1,40 @@
-const sha1 = require('sha1');
-const DBClient = require('../utils/db');
+/* eslint-disable import/no-named-as-default */
+import sha1 from 'sha1';
+import Queue from 'bull/lib/queue';
+import dbClient from '../utils/db';
 
-class UsersController {
+const userQueue = new Queue('email sending');
+
+export default class UsersController {
   static async postNew(req, res) {
-    // Extract email and password from request body
-    const { email, password } = req.body;
+    const email = req.body ? req.body.email : null;
+    const password = req.body ? req.body.password : null;
 
-    // Check if email is missing
     if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
+      res.status(400).json({ error: 'Missing email' });
+      return;
     }
-
-    // Check if password is missing
     if (!password) {
-      return res.status(400).json({ error: 'Missing password' });
+      res.status(400).json({ error: 'Missing password' });
+      return;
     }
+    const user = await (await dbClient.usersCollection()).findOne({ email });
 
-    try {
-      // Initialize the DB client
-      const db = await DBClient.get();
-
-      // Check if email already exists in DB
-      const existingUser = await db.collection('users').findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ error: 'Already exist' });
-      }
-
-      // Hash the password using SHA1
-      const hashedPassword = sha1(password);
-
-      // Create a new user object
-      const newUser = {
-        email,
-        password: hashedPassword, // Store hashed password
-      };
-
-      // Save the new user to the database
-      const result = await db.collection('users').insertOne(newUser);
-
-      // Return the new user with only email and id
-      return res.status(201).json({ id: result.insertedId, email: newUser.email });
-    } catch (error) {
-      // Handle any errors
-      console.error('Error creating user:', error);
-      return res.status(400).json({ error: 'Couldnt create user' });
+    if (user) {
+      res.status(400).json({ error: 'Already exist' });
+      return;
     }
+    const insertionInfo = await (await dbClient.usersCollection())
+      .insertOne({ email, password: sha1(password) });
+    const userId = insertionInfo.insertedId.toString();
+
+    userQueue.add({ userId });
+    res.status(201).json({ email, id: userId });
+  }
+
+  static async getMe(req, res) {
+    const { user } = req;
+
+    res.status(200).json({ email: user.email, id: user._id.toString() });
   }
 }
-
-module.exports = UsersController;

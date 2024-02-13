@@ -1,5 +1,7 @@
 const sha1 = require('sha1');
+const { ObjectId } = require('mongodb');
 const DBClient = require('../utils/db');
+const redisClient = require('../utils/redis');
 
 class UsersController {
   static async postNew(req, res) {
@@ -44,6 +46,40 @@ class UsersController {
       // Handle any errors
       console.error('Error creating user:', error);
       return res.status(400).json({ error: 'Couldnt create user' });
+    }
+  }
+
+  static async getMe(req, res) {
+    try {
+      // Extract token from Authorization header
+      const token = req.headers.authorization;
+
+      // Check if token is missing
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Retrieve user ID from Redis using token
+      const userId = await redisClient.get(`auth_${token}`);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Initialize the DB client
+      const db = await DBClient.get();
+
+      // Find user by ID
+      const user = await db.collection('users').findOne({ _id: ObjectId(userId) });
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Return the user object with only email and id
+      return res.status(200).json({ id: user._id, email: user.email });
+    } catch (error) {
+      // Handle any errors
+      console.error('Error retrieving user:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 }

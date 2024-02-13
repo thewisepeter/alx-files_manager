@@ -5,7 +5,7 @@ class UsersController {
   static async postNew(req, res) {
     // Extract email and password from request body
     const { email, password } = req.body;
-
+    
     // Check if email is missing
     if (!email) {
       return res.status(400).json({ error: 'Missing email' });

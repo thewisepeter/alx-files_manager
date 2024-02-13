@@ -22,13 +22,13 @@ class AuthController {
     }
 
     // Generate authentication token
-    const token = uuidv4();
+    const accessToken = uuidv4();
 
     // Store user ID in Redis with token as key for 24 hours
-    await redisClient.set(`auth_${token}`, user._id.toString(), 86400);
+    await redisClient.set(`auth_${accessToken}`, user._id.toString(), 86400);
 
     // Return token
-    return res.status(200).json({ token });
+    return res.status(200).json({ token: accessToken });
   }
 
   static async getDisconnect(req, res) {

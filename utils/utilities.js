@@ -1,34 +1,26 @@
-const sha1 = require('sha1');
+import redisClient from './redis';
+import dbClient from './db';
 
-export const pwdHashed = (pwd) => sha1(pwd);
-export const getAuthzHeader = (req) => {
-  const header = req.headers.authorization;
-  if (!header) {
-    return null;
-  }
-  return header;
-};
+async function getAuthToken(request) {
+  const token = request.headers['x-token'];
+  return `auth_${token}`;
+}
 
-export const getToken = (authzHeader) => {
-  const tokenType = authzHeader.substring(0, 6);
-  if (tokenType !== 'Basic ') {
-    return null;
-  }
-  return authzHeader.substring(6);
-};
+// checks authentication against verified information
+// returns userId of user
+async function findUserIdByToken(request) {
+  const key = await getAuthToken(request);
+  const userId = await redisClient.get(key);
+  return userId || null;
+}
 
-export const decodeToken = (token) => {
-  const decodedToken = Buffer.from(token, 'base64').toString('utf8');
-  if (!decodedToken.includes(':')) {
-    return null;
-  }
-  return decodedToken;
-};
+// Gets user by userId
+// Returns exactly the first user found
+async function findUserById(userId) {
+  const userExistsArray = await dbClient.users.find(`ObjectId("${userId}")`).toArray();
+  return userExistsArray[0] || null;
+}
 
-export const getCredentials = (decodedToken) => {
-  const [email, password] = decodedToken.split(':');
-  if (!email || !password) {
-    return null;
-  }
-  return { email, password };
+export {
+  findUserIdByToken, findUserById,
 };

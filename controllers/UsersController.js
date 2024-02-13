@@ -1,50 +1,65 @@
-const sha1 = require('sha1');
-const DBClient = require('../utils/db');
+import sha1 from 'sha1';
+import Queue from 'bull';
+import { findUserById, findUserIdByToken } from '../utils/utilities';
+import dbClient from '../utils/db';
+
+const userQueue = new Queue('userQueue');
 
 class UsersController {
-  static async postNew(req, res) {
-    // Extract email and password from request body
-    const { email, password } = req.body;
+  // Extract email and password from request body
+  static async postNew(request, response) {
+    const { email, password } = request.body;
 
-    // Check if email is missing
-    if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
-    }
+    // check for missing email or password
+    if (!email) return response.status(400).send({ error: 'Missing email' });
+    if (!password) return response.status(400).send({ error: 'Missing password' });
 
-    // Check if password is missing
-    if (!password) {
-      return res.status(400).json({ error: 'Missing password' });
-    }
+    // check if the email already exists in DB
+    const emailExists = await dbClient.users.findOne({ email });
+    if (emailExists) return response.status(400).send({ error: 'Already exist' });
 
+    // create new user
+    const sha1Password = sha1(password);
+    let result;
     try {
-      // Initialize the DB client
-      const db = await DBClient.get();
-
-      // Check if email already exists in DB
-      const existingUser = await db.collection('users').findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ error: 'Already exist' });
-      }
-
-      // Hash the password using SHA1
-      const hashedPassword = sha1(password);
-
-      // Create a new user object
-      const newUser = {
-        email,
-        password: hashedPassword, // Store hashed password
-      };
-
-      // Save the new user to the database
-      const result = await db.collection('users').insertOne(newUser);
-
-      // Return the new user with only email and id
-      return res.status(201).json({ id: result.insertedId, email: newUser.email });
-    } catch (error) {
-      // Handle any errors
-      console.error('Error creating user:', error);
-      return res.status(400).json({ error: 'Couldnt create user' });
+      result = await dbClient.users.insertOne({
+        email, password: sha1Password,
+      });
+    } catch (err) {
+      await userQueue.add({});
+      return response.status(500).send({ error: 'Error creating user' });
     }
+
+    const user = {
+      id: result.insertedId,
+      email,
+    };
+
+    await userQueue.add({
+      userId: result.insertedId.toString(),
+    });
+
+    return response.status(201).send(user);
+  }
+
+  
+  static async getMe(request, response) {
+    const token = request.headers['x-token'];
+    if (!token) { return response.status(401).json({ error: 'Unauthorized' }); }
+
+    // Retrieve user based on the token
+    const userId = await findUserIdByToken(request);
+    if (!userId) return response.status(401).send({ error: 'Unauthorized' });
+
+    const user = await findUserById(userId);
+
+    if (!user) return response.status(401).send({ error: 'Unauthorized' });
+
+    const processedUser = { id: user._id, ...user };
+    delete processedUser._id;
+    delete processedUser.password;
+    // Return the user object (email and id only)
+    return response.status(200).send(processedUser);
   }
 }
 

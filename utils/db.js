@@ -34,7 +34,6 @@ class DBClient {
 const dbClient = new DBClient();
 module.exports = dbClient;
 
-
 // const { MongoClient } = require('mongodb');
 // // const mongo = require('mongodb');
 // // const { pwdHashed } = require('./utilities');
@@ -99,7 +98,8 @@ module.exports = dbClient;
 //   // async getUserById(id) {
 //   //   const _id = new mongo.ObjectID(id);
 //   //   await this.client.connect();
-//   //   const user = await this.client.db(this.database).collection('users').find({ _id }).toArray();
+//   //   const user = await this.client.db(this.database).collection('users').
+// find({ _id }).toArray();
 //   //   if (!user.length) {
 //   //     return null;
 //   //   }

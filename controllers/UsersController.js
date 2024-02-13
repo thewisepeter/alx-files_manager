@@ -6,7 +6,9 @@ import dbClient from '../utils/db';
 const userQueue = new Queue('userQueue');
 
 class UsersController {
-  // Extract email and password from request body
+  /**
+   * Creates a user using email and password
+   */
   static async postNew(request, response) {
     const { email, password } = request.body;
 
@@ -42,7 +44,6 @@ class UsersController {
     return response.status(201).send(user);
   }
 
-  
   static async getMe(request, response) {
     const token = request.headers['x-token'];
     if (!token) { return response.status(401).json({ error: 'Unauthorized' }); }

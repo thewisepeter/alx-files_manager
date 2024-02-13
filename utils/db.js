@@ -36,6 +36,11 @@ class DBClient {
     return count;
   }
 
+  async get() {
+    await this.client.connect();
+    return this.client.db();
+  }
+
   // async createUser(email, password) {
   //   const hashedPwd = pwdHashed(password);
   //   await this.client.connect();

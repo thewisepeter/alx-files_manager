@@ -102,6 +102,50 @@ class FilesController {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+
+  static async getShow(req, res) {
+    // Retrieve the user based on the token
+    const { user } = req;
+
+    // If user is not found, return Unauthorized
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Retrieve the file document based on the ID
+    const fileId = req.params.id;
+    const file = await DBClient.get('files', { _id: fileId, userId: user.id });
+
+    // If no file document is found, return Not found
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    // Return the file document
+    return res.json(file);
+  }
+
+  static async getIndex(req, res) {
+    // Retrieve the user based on the token
+    const { user } = req;
+
+    // If user is not found, return Unauthorized
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Retrieve parentId and page from query parameters
+    const parentId = parseInt(req.query.parentId, 10) || 0;
+    const page = parseInt(req.query.page, 10) || 0;
+    const limit = 20;
+    const skip = page * limit;
+
+    // Retrieve the list of file documents based on parentId and pagination
+    const files = await DBClient.get('files', { parentId, userId: user.id }, { limit, skip });
+
+    // Return the list of file documents
+    return res.json(files);
+  }
 }
 
 module.exports = FilesController;

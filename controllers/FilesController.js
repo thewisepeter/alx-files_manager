@@ -9,7 +9,7 @@ class FilesController {
   static async postUpload(req, res) {
     try {
       // Extract token from Authorization header
-      const token = req.headers.authorization;
+      const token = req.headers['x-token'];
 
       // Check if token is missing
       if (!token) {

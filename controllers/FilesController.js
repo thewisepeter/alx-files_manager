@@ -216,6 +216,47 @@ class FilesController {
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
+
+  static async getFile(req, res) {
+    // Extract file ID from request parameters
+    const { id } = req.params;
+
+    // Retrieve user based on token
+    const { user } = req;
+
+    // Check if user is not found
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      // Initialize DB client
+      const db = await DBClient.get();
+
+      // Find file document by ID
+      const file = await db.collection('files').findOne({ _id: ObjectId(id), userId: user._id });
+
+      // Check if file document is not found
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      // Check if file type is not equal to "file" or "image"
+      if (file.type !== 'file' && file.type !== 'image') {
+        return res.status(400).json({ error: 'Invalid file type' });
+      }
+
+      // Read file from disk
+      const filePath = path.join(process.env.FOLDER_PATH || '/tmp/files_manager', file.localPath);
+      const fileData = fs.readFileSync(filePath, 'utf8');
+
+      // Return file data (Base64 content)
+      return res.status(200).json({ data: fileData });
+    } catch (error) {
+      console.error('Error fetching file data:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
 }
 
 module.exports = FilesController;

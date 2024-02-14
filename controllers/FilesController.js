@@ -146,6 +146,76 @@ class FilesController {
     // Return the list of file documents
     return res.json(files);
   }
+
+  static async putPublish(req, res) {
+    // Extract file ID from request parameters
+    const { id } = req.params;
+
+    // Retrieve user based on token
+    const { user } = req;
+
+    // Check if user is not found
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      // Initialize DB client
+      const db = await DBClient.get();
+
+      // Find file document by ID
+      const file = await db.collection('files').findOne({ _id: ObjectId(id), userId: user._id });
+
+      // Check if file document is not found
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      // Update isPublic field to true
+      await db.collection('files').updateOne({ _id: ObjectId(id) }, { $set: { isPublic: true } });
+
+      // Return updated file document
+      return res.status(200).json(file);
+    } catch (error) {
+      console.error('Error publishing file:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  static async putUnpublish(req, res) {
+    // Extract file ID from request parameters
+    const { id } = req.params;
+
+    // Retrieve user based on token
+    const { user } = req;
+
+    // Check if user is not found
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      // Initialize DB client
+      const db = await DBClient.get();
+
+      // Find file document by ID
+      const file = await db.collection('files').findOne({ _id: ObjectId(id), userId: user._id });
+
+      // Check if file document is not found
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      // Update isPublic field to false
+      await db.collection('files').updateOne({ _id: ObjectId(id) }, { $set: { isPublic: false } });
+
+      // Return updated file document
+      return res.status(200).json(file);
+    } catch (error) {
+      console.error('Error unpublishing file:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
 }
 
 module.exports = FilesController;

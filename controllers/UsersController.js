@@ -28,11 +28,12 @@ export default class UsersController {
     // Hash the password
     const hashedPassword = sha1(password);
 
-    const insertionInfo = await (await dbClient.usersCollection()).insertOne({ email, password: hashedPassword });
+    const insertionInfo = await (await dbClient.usersCollection())
+      .insertOne({ email, password: hashedPassword });
     const userId = insertionInfo.insertedId.toString();
 
     userQueue.add({ userId });
-    res.status(201).json({id: userId, email });
+    res.status(201).json({ id: userId, email });
   }
 
   static async getMe(req, res) {

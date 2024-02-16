@@ -40,9 +40,10 @@ class UsersController {
 
       // Save the new user to the database
       const result = await db.collection('users').insertOne(newUser);
+      const userId = result.insertedId.toString();
 
       // Return the new user with only email and id
-      return res.status(201).json({ id: result.insertedId, email: newUser.email });
+      return res.status(201).json({ email: newUser.email, id: userId });
     } catch (error) {
       // Handle any errors
       console.error('Error creating user:', error);

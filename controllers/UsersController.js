@@ -6,7 +6,8 @@ const redisClient = require('../utils/redis');
 class UsersController {
   static async postNew(req, res) {
     // Extract email and password from request body
-    const { email, password } = req.body;
+    const email = req.body ? req.body.email : null;
+    const password = req.body ? req.body.password : null;
 
     // Check if email is missing
     if (!email) {

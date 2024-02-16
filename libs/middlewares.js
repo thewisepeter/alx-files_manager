@@ -1,11 +1,11 @@
 import express from 'express';
 
 /**
- * Adds middlewares to the given express application.
+ * Add middleware to the given express application.
  * @param {express.Express} api The express application.
  */
-const injectMiddlewares = (api) => {
+const injectMiddleware = (api) => {
   api.use(express.json({ limit: '200mb' }));
 };
 
-export default injectMiddlewares;
+export default injectMiddleware;

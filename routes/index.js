@@ -8,10 +8,12 @@ import { basicAuthenticate, xTokenAuthenticate } from '../middlewares/auth';
 import { APIError, errorResponse } from '../middlewares/error';
 
 /**
- * Injects routes with their handlers to the given Express application.
- * @param {Express} api
+ * This function adds routes and their corresponding handlers to the provided Express
+ * application.
+ * @param {Express} api - The Express application to which routes will be injected.
  */
-const injectRoutes = (api) => {
+
+const initializeRoutes = (api) => {
   api.get('/status', AppController.getStatus);
   api.get('/stats', AppController.getStats);
 
@@ -34,4 +36,4 @@ const injectRoutes = (api) => {
   api.use(errorResponse);
 };
 
-export default injectRoutes;
+export default initializeRoutes;

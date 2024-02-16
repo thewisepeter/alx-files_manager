@@ -22,7 +22,8 @@ class DBClient {
   }
 
   /**
-   * Checks if this client's connection to the MongoDB server is active.
+   * Checks if this client's connection to
+   * MongoDB server is active.
    * @returns {boolean}
    */
   isAlive() {
@@ -30,7 +31,7 @@ class DBClient {
   }
 
   /**
-   * Retrieves the number of users in the database.
+   * Retrieves number of users in database.
    * @returns {Promise<Number>}
    */
   async nbUsers() {
@@ -38,7 +39,7 @@ class DBClient {
   }
 
   /**
-   * Retrieves the number of files in the database.
+   * Retrieves number of files in the database.
    * @returns {Promise<Number>}
    */
   async nbFiles() {

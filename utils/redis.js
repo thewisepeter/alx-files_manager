@@ -21,7 +21,8 @@ class RedisClient {
   }
 
   /**
-   * Checks if this client's connection to the Redis server is active.
+   * Checks if this client's connection
+   * is active.
    * @returns {boolean}
    */
   isAlive() {
@@ -29,28 +30,38 @@ class RedisClient {
   }
 
   /**
-   * Retrieves the value of a given key.
-   * @param {String} key The key of the item to retrieve.
-   * @returns {String | Object}
+   * Retrieves the value associated with a specified key
+   * from the Redis database.
+   * @param {String} key - The key of the item to retrieve.
+   * @returns {String | Object} - The value associated with
+   * the specified key.
    */
   async get(key) {
+    // Use promisify to convert the callback-based GET method
+    // of the Redis client into a Promise-based function,
+    // then bind it to the client and call it with the specified
+    // key to fetch the value.
     return promisify(this.client.GET).bind(this.client)(key);
   }
 
   /**
-   * Stores a key and its value along with an expiration time.
-   * @param {String} key The key of the item to store.
-   * @param {String | Number | Boolean} value The item to store.
-   * @param {Number} duration The expiration time of the item in seconds.
-   * @returns {Promise<void>}
+   * Stores a key-value pair in the Redis database with an optional expiration time.
+   * @param {String} key - The key of the item to store.
+   * @param {String | Number | Boolean} value - The value to store.
+   * @param {Number} duration - The expiration time of the item in seconds.
+   * @returns {Promise<void>} - A Promise indicating the success of the operation.
    */
   async set(key, value, duration) {
+    // Use promisify to convert the callback-based SETEX method of the Redis client
+    // into a Promise-based function,
+    // then bind it to the client and call it with the specified key, duration, and
+    // value to store the item.
     await promisify(this.client.SETEX)
       .bind(this.client)(key, duration, value);
   }
 
   /**
-   * Removes the value of a given key.
+   * Deletes value of a given key.
    * @param {String} key The key of the item to remove.
    * @returns {Promise<void>}
    */

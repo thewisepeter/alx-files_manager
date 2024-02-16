@@ -24,12 +24,15 @@ export default class UsersController {
       res.status(400).json({ error: 'Already exist' });
       return;
     }
-    const insertionInfo = await (await dbClient.usersCollection())
-      .insertOne({ email, password: sha1(password) });
+
+    // Hash the password
+    const hashedPassword = sha1(password);
+
+    const insertionInfo = await (await dbClient.usersCollection()).insertOne({ email, password: hashedPassword });
     const userId = insertionInfo.insertedId.toString();
 
     userQueue.add({ userId });
-    res.status(201).json({ email, id: userId });
+    res.status(201).json({id: userId, email });
   }
 
   static async getMe(req, res) {
